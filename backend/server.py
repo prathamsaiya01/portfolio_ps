@@ -67,6 +67,17 @@ async def get_status_checks():
     
     return status_checks
 
+@api_router.get("/download/portfolio")
+async def download_portfolio():
+    file_path = ROOT_DIR / "portfolio-website.zip"
+    if file_path.exists():
+        return FileResponse(
+            path=str(file_path),
+            filename="portfolio-website.zip",
+            media_type="application/zip"
+        )
+    return {"error": "File not found"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
