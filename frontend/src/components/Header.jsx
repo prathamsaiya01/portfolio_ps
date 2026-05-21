@@ -61,12 +61,15 @@ const Header = () => {
       <div className="max-w-[87.5rem] mx-auto px-8 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <button
-            onClick={() => scrollToSection('home')}
-            className="text-[#d9fb06] font-bold text-xl tracking-tight hover:opacity-80 transition-opacity"
-          >
-            AM
-          </button>
+        
+
+<button
+  onClick={() => scrollToSection('home')}
+  className="text-[#d9fb06] font-bold text-xl tracking-tight hover:opacity-80 transition-opacity"
+>
+  PS
+</button>
+
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-2">

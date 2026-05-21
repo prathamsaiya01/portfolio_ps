@@ -5,7 +5,7 @@ import { personalInfo } from '../data/mock';
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
-  const scrollToSection = (sectionId) => {
+  const scrollToSection = (sectionId) => {   // 👈 remove : string
     const element = document.getElementById(sectionId);
     if (element) {
       const offset = 80;
@@ -21,15 +21,18 @@ const Footer = () => {
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           {/* Brand */}
           <div>
-            <h3 className="text-[#d9fb06] font-bold text-2xl mb-3">AM</h3>
+            <h3 className="text-[#d9fb06] font-bold text-2xl mb-3">PS</h3>
             <p className="text-[#888680] text-sm leading-relaxed">
-              Full-Stack Developer & UI/UX Designer building beautiful, functional web experiences.
+              Diploma Computer Engineering student & aspiring software developer,
+              building event tech, web apps, and smooth user experiences.
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-[#dfddd6] font-semibold mb-4 uppercase text-sm tracking-wide">Quick Links</h4>
+            <h4 className="text-[#dfddd6] font-semibold mb-4 uppercase text-sm tracking-wide">
+              Quick Links
+            </h4>
             <nav className="flex flex-col gap-2">
               {['home', 'about', 'projects', 'skills', 'resume', 'contact'].map((link) => (
                 <button
@@ -65,9 +68,7 @@ const Footer = () => {
               © {currentYear} {personalInfo.name}. Made with{' '}
               <Heart size={14} className="text-[#d9fb06] fill-[#d9fb06]" />
             </p>
-            <p className="text-[#888680] text-sm">
-              Built with React & Tailwind CSS
-            </p>
+            <p className="text-[#888680] text-sm">Built with React & Tailwind CSS</p>
           </div>
         </div>
       </div>

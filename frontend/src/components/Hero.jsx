@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Github, Linkedin, Twitter } from 'lucide-react';
+import { Github, Linkedin, Twitter } from 'lucide-react';
 import { Button } from './ui/button';
 import { personalInfo } from '../data/mock';
 
 const Hero = () => {
-  const [displayText, setDisplayText] = useState('');
-  const skills = ['React Developer', 'UI/UX Designer', 'Problem Solver', 'Full-Stack Engineer'];
+  const skills = [
+    'Computer Engineering Student',
+    'React & JavaScript Developer',
+    'Technical Head – Spectrum 4.0',
+    'Event Tech & UI/UX Enthusiast',
+  ];
   const [currentSkill, setCurrentSkill] = useState(0);
 
   useEffect(() => {
@@ -15,7 +19,7 @@ const Hero = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const scrollToSection = (sectionId) => {
+  const scrollToSection = (sectionId) => {   // 👈 no : string here
     const element = document.getElementById(sectionId);
     if (element) {
       const offset = 80;
@@ -37,7 +41,9 @@ const Hero = () => {
         <div className="max-w-4xl">
           {/* Greeting */}
           <div className="mb-6 animate-fadeIn">
-            <span className="text-[#888680] text-lg font-medium uppercase tracking-wider">Hello, I'm</span>
+            <span className="text-[#888680] text-lg font-medium uppercase tracking-wider">
+              Hello, I&apos;m
+            </span>
           </div>
 
           {/* Name */}
@@ -53,7 +59,10 @@ const Hero = () => {
           </div>
 
           {/* Tagline */}
-          <p className="text-[#888680] text-lg md:text-xl max-w-2xl mb-12 leading-relaxed animate-slideUp" style={{ animationDelay: '0.4s' }}>
+          <p
+            className="text-[#888680] text-lg md:text-xl max-w-2xl mb-12 leading-relaxed animate-slideUp"
+            style={{ animationDelay: '0.4s' }}
+          >
             {personalInfo.tagline}
           </p>
 

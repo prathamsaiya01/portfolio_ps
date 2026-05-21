@@ -81,27 +81,31 @@ const Resume = () => {
             </div>
 
             {/* Certifications/Additional Info */}
-            <div className="mt-12 bg-[#302f2c] p-6 rounded-xl border border-[#3f4816]/50">
-              <h4 className="text-[#d9fb06] font-bold mb-4 uppercase text-sm tracking-wide">Key Highlights</h4>
-              <ul className="space-y-2 text-[#888680]">
-                <li className="flex items-start gap-2">
-                  <span className="text-[#d9fb06] mt-1">•</span>
-                  <span>5+ years of professional development experience</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#d9fb06] mt-1">•</span>
-                  <span>Led teams of 3-5 developers on multiple projects</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#d9fb06] mt-1">•</span>
-                  <span>Specialized in React, Node.js, and modern web technologies</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#d9fb06] mt-1">•</span>
-                  <span>Strong focus on accessibility and user experience</span>
-                </li>
-              </ul>
-            </div>
+          {/* Certifications/Additional Info */}
+<div className="mt-12 bg-[#302f2c] p-6 rounded-xl border border-[#3f4816]/50">
+  <h4 className="text-[#d9fb06] font-bold mb-4 uppercase text-sm tracking-wide">
+    Key Highlights
+  </h4>
+  <ul className="space-y-2 text-[#888680]">
+    <li className="flex items-start gap-2">
+      <span className="text-[#d9fb06] mt-1">•</span>
+      <span>Topper in Semester I &amp; II (91.77% and 91.33%).</span>
+    </li>
+    <li className="flex items-start gap-2">
+      <span className="text-[#d9fb06] mt-1">•</span>
+      <span>Technical Head of Spectrum 4.0 and active SCR (Student Class Representative).</span>
+    </li>
+    <li className="flex items-start gap-2">
+      <span className="text-[#d9fb06] mt-1">•</span>
+      <span>Hackathon experience in Smart India Hackathon (LoanWise) and RakhtSetu.</span>
+    </li>
+    <li className="flex items-start gap-2">
+      <span className="text-[#d9fb06] mt-1">•</span>
+      <span>Developed multiple tech-based and event projects including ApnaAdda, FilmyRadar and QuizMaster.</span>
+    </li>
+  </ul>
+</div>
+
           </div>
         </div>
       </div>

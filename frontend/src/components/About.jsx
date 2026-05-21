@@ -20,7 +20,7 @@ const About = () => {
             {/* Profile Image Placeholder */}
             <div className="w-64 h-64 bg-[#302f2c] rounded-2xl mb-8 overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80"
+                src="/images/profile-pratham.jpg"
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
