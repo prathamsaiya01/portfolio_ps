@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ExternalLink, Github, X } from 'lucide-react';
 import { Button } from './ui/button';
-import { projects } from '../data/mock';
+import { loadPortfolioProjects, mockProjects } from '../services/projectData';
 import {
   Dialog,
   DialogContent,
@@ -11,8 +11,17 @@ import {
 } from './ui/dialog';
 
 const Projects = () => {
+  const [projects, setProjects] = useState(mockProjects);
   const [filter, setFilter] = useState('all');
   const [selectedProject, setSelectedProject] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    loadPortfolioProjects().then((loadedProjects) => {
+      if (active) setProjects(loadedProjects);
+    });
+    return () => { active = false; };
+  }, []);
 
   // Get unique tech stacks for filtering
   const allTechs = [...new Set(projects.flatMap(p => p.stack))];
