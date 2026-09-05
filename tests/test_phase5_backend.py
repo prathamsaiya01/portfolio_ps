@@ -166,7 +166,11 @@ def test_email_service_success_and_failure(candidate):
 
     with patch.object(service, "_send_message", side_effect=smtplib.SMTPException("private smtp detail")):
         with pytest.raises(EmailDeliveryError, match="Email delivery failed"):
-            __import__("asyncio").run(service.send_candidate_email(candidate))
+            try:
+                __import__("asyncio").run(service.send_candidate_email(candidate))
+            except EmailDeliveryError as error:
+                assert isinstance(error.__cause__, smtplib.SMTPException)
+                raise
 
 
 def test_email_template_contains_repository_and_decision_links(candidate):
@@ -219,18 +223,23 @@ def test_send_email_failure_logs_safe_smtp_context_without_lifecycle_side_effect
              "email_port": "587",
              "email_use_tls": "true",
          }):
-        email_class.return_value.send_candidate_email = AsyncMock(side_effect=EmailDeliveryError("Email delivery failed password=do-not-log token=secret-token"))
+        delivery_error = EmailDeliveryError("Email delivery failed")
+        delivery_error.__cause__ = smtplib.SMTPAuthenticationError(535, b"password=do-not-log token=secret-token")
+        email_class.return_value.send_candidate_email = AsyncMock(side_effect=delivery_error)
         with caplog.at_level("ERROR"):
             response = TestClient(app).post(f"/api/candidates/{candidate['candidate_id']}/send-email")
 
     assert response.status_code == 502
-    assert "exception_type=EmailDeliveryError" in caplog.text
+    assert "exception_type=SMTPAuthenticationError" in caplog.text
+    assert "exception_type=EmailDeliveryError" not in caplog.text
     assert "provider=smtp" in caplog.text
     assert "host=smtp.example.com" in caplog.text
     assert "port=587" in caplog.text
     assert "tls=true" in caplog.text
     assert "do-not-log" not in caplog.text
     assert "secret-token" not in caplog.text
+    assert candidate["suggested_title"] not in caplog.text
+    assert candidate["suggested_description"] not in caplog.text
     assert db.candidates.candidate["candidate_status"] == "CANDIDATE"
 
 

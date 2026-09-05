@@ -39,11 +39,12 @@ async def send_candidate_email(candidate_id: str):
     try:
         await EmailService().send_candidate_email(candidate)
     except EmailDeliveryError as exc:
+        root_cause = exc.__cause__ or exc
         settings = get_settings()
         logger.error(
             "Candidate email delivery failed: exception_type=%s exception_message=%s provider=%s host=%s port=%s tls=%s",
-            type(exc).__name__,
-            _safe_email_error_message(exc),
+            type(root_cause).__name__,
+            _safe_email_error_message(root_cause),
             settings.get("email_provider") or "unknown",
             settings.get("email_host") or "unknown",
             settings.get("email_port") or "unknown",
