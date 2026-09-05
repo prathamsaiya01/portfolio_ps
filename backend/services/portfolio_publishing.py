@@ -18,7 +18,7 @@ class PortfolioPublishingService:
         if str(candidate.get("candidate_status") or "").upper() != "APPROVED":
             raise PortfolioPublishingError("Only approved candidates can be published")
         collection = getattr(db, "published_projects", None)
-        if collection is None or not hasattr(collection, "find_one") or not inspect.iscoroutinefunction(collection.find_one):
+        if collection is None or not hasattr(collection, "find_one"):
             raise PortfolioPublishingError("Published portfolio is not configured")
 
         project_collection = getattr(db, "projects", None)

@@ -71,7 +71,7 @@ class ApprovalService:
                 published = await PortfolioPublishingService().publish_approved_candidate(db, updated_candidate)
             except PortfolioPublishingError as exc:
                 # Approval is authoritative; publication can be retried without changing it.
-                if str(exc) != "Published portfolio is not configured":
+                if str(exc) not in {"Published portfolio is not configured", "Approved candidate has no repository identity"}:
                     await db.candidates.update_one(
                         {"candidate_id": payload["cid"]},
                         {"$set": {"publishing_status": "FAILED", "publishing_error": "Publishing failed", "updated_at": datetime.now(timezone.utc)}},

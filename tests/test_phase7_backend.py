@@ -108,6 +108,23 @@ async def test_approved_candidate_publishes_and_republishing_is_idempotent():
 
 
 @pytest.mark.asyncio
+async def test_approved_candidate_publishes_with_motor_style_proxy_methods():
+    class MotorStyleCollection(Collection):
+        def find_one(self, query):
+            async def operation():
+                return await super(MotorStyleCollection, self).find_one(query)
+            return operation()
+
+    db = Db(projects=[project()])
+    db.published_projects = MotorStyleCollection([])
+
+    record = await PortfolioPublishingService().publish_approved_candidate(db, candidate(), project())
+
+    assert record["status"] == "PUBLISHED"
+    assert len(db.published_projects.records) == 1
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("status", ["REJECTED", "REVIEW", "IGNORE"])
 async def test_non_approved_candidate_does_not_publish(status):
     db = Db(projects=[project()])
