@@ -6,6 +6,8 @@ from email.message import EmailMessage
 from typing import Any, Dict, Optional
 from urllib.parse import quote
 
+import httpx
+
 from backend.config import get_settings
 from backend.services.approval_token_service import ApprovalTokenService
 
@@ -21,13 +23,10 @@ class EmailService:
 
     async def send_candidate_email(self, candidate: Dict[str, Any]) -> Dict[str, Any]:
         provider = str(self.settings.get("email_provider") or "smtp").lower()
-        if provider != "smtp":
-            raise EmailDeliveryError("Email provider is not supported")
 
         recipient = self.settings.get("email_to")
         sender = self.settings.get("email_from")
-        host = self.settings.get("email_host")
-        if not recipient or not sender or not host:
+        if not recipient or not sender:
             raise EmailDeliveryError("Email delivery is not configured")
 
         tokens = {
@@ -37,10 +36,22 @@ class EmailService:
         base_url = str(self.settings.get("frontend_base_url") or "http://localhost:3000").rstrip("/")
         links = {action: f"{base_url}/approval/{quote(token, safe='')}" for action, token in tokens.items()}
         message = self._build_message(candidate, links, sender, recipient)
-        try:
-            self._send_message(message)
-        except (OSError, smtplib.SMTPException) as exc:
-            raise EmailDeliveryError("Email delivery failed") from exc
+        if provider == "smtp":
+            if not self.settings.get("email_host"):
+                raise EmailDeliveryError("Email delivery is not configured")
+            try:
+                self._send_message(message)
+            except (OSError, smtplib.SMTPException) as exc:
+                raise EmailDeliveryError("Email delivery failed") from exc
+        elif provider == "resend":
+            if not self.settings.get("resend_api_key"):
+                raise EmailDeliveryError("Email delivery is not configured")
+            try:
+                await self._send_resend_message(message)
+            except httpx.HTTPError as exc:
+                raise EmailDeliveryError("Email delivery failed") from exc
+        else:
+            raise EmailDeliveryError("Email provider is not supported")
 
         return {"tokens": tokens, "recipient": recipient}
 
@@ -56,6 +67,25 @@ class EmailService:
             if username:
                 smtp.login(username, password or "")
             smtp.send_message(message)
+
+    async def _send_resend_message(self, message: EmailMessage) -> None:
+        api_key = str(self.settings["resend_api_key"])
+        text_body = message.get_body(preferencelist=("plain",)).get_content()
+        html_body = message.get_body(preferencelist=("html",)).get_content()
+        payload = {
+            "from": str(message["From"]),
+            "to": [str(message["To"])],
+            "subject": str(message["Subject"]),
+            "text": text_body,
+            "html": html_body,
+        }
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "User-Agent": "portfolio-email-service",
+        }
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post("https://api.resend.com/emails", json=payload, headers=headers)
+            response.raise_for_status()
 
     @staticmethod
     def _text(value: Any, fallback: str = "Not recorded") -> str:

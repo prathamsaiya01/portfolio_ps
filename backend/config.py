@@ -43,6 +43,7 @@ def get_settings() -> dict:
         "email_provider": get_env("EMAIL_PROVIDER", "smtp"),
         "email_from": get_env("EMAIL_FROM"),
         "email_to": get_env("EMAIL_TO") or get_env("ADMIN_EMAIL"),
+        "resend_api_key": get_env("RESEND_API_KEY"),
         "email_host": get_env("EMAIL_HOST"),
         "email_port": get_env("EMAIL_PORT", "587"),
         "email_username": get_env("EMAIL_USERNAME"),

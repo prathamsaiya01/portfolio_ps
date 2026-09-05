@@ -3,8 +3,10 @@ from __future__ import annotations
 import smtplib
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
+from urllib.parse import quote
 
 import pytest
+import httpx
 from fastapi.testclient import TestClient
 
 from backend.models.candidate import CandidateRecord
@@ -171,6 +173,80 @@ def test_email_service_success_and_failure(candidate):
             except EmailDeliveryError as error:
                 assert isinstance(error.__cause__, smtplib.SMTPException)
                 raise
+
+
+@pytest.mark.asyncio
+async def test_resend_email_service_preserves_existing_message_and_keeps_secrets_out_of_logs(candidate, caplog):
+    candidate["full_name"] = "Heetshah21/igniteHackathon404Found"
+    settings = {
+        "email_provider": "resend",
+        "email_from": "Portfolio <sender@example.com>",
+        "email_to": "owner@example.com",
+        "resend_api_key": "re_test-secret-key",
+        "frontend_base_url": "https://portfolio.example.com",
+    }
+    service = EmailService(settings=settings, token_service=ApprovalTokenService(secret="phase5-test-secret"))
+    response = MagicMock()
+    response.raise_for_status.return_value = None
+
+    with patch("backend.services.email_service.httpx.AsyncClient.post", new_callable=AsyncMock, return_value=response) as post:
+        with caplog.at_level("ERROR"):
+            result = await service.send_candidate_email(candidate)
+
+    request = post.call_args
+    assert request.args == ("https://api.resend.com/emails",)
+    assert request.kwargs["headers"]["Authorization"] == "Bearer re_test-secret-key"
+    payload = request.kwargs["json"]
+    assert payload["subject"] == "New Portfolio Candidate - CareerMitra"
+    assert candidate["full_name"] in payload["text"]
+    assert candidate["full_name"] in payload["html"]
+    for token in result["tokens"].values():
+        approval_url = f"https://portfolio.example.com/approval/{quote(token, safe='')}"
+        assert approval_url in payload["text"]
+        assert approval_url in payload["html"]
+        assert token not in caplog.text
+    assert "re_test-secret-key" not in caplog.text
+    assert candidate["suggested_title"] not in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_resend_provider_failure_is_chained_as_email_delivery_error(candidate):
+    settings = {
+        "email_provider": "resend",
+        "email_from": "sender@example.com",
+        "email_to": "owner@example.com",
+        "resend_api_key": "re_test-secret-key",
+    }
+    service = EmailService(settings=settings, token_service=ApprovalTokenService(secret="phase5-test-secret"))
+    provider_error = httpx.ConnectError("Resend unavailable")
+
+    with patch("backend.services.email_service.httpx.AsyncClient.post", new_callable=AsyncMock, side_effect=provider_error):
+        with pytest.raises(EmailDeliveryError, match="Email delivery failed") as error:
+            await service.send_candidate_email(candidate)
+
+    assert error.value.__cause__ is provider_error
+
+
+def test_resend_provider_failure_returns_502_without_logging_api_key(candidate, caplog):
+    db = MagicMock()
+    db.candidates = InMemoryCandidates(candidate)
+    request = httpx.Request("POST", "https://api.resend.com/emails")
+    response = httpx.Response(401, request=request)
+    provider_error = httpx.HTTPStatusError("Client error", request=request, response=response)
+    with patch("backend.routes.candidates.get_database", return_value=db), \
+         patch("backend.routes.candidates.EmailService") as email_class, \
+         patch("backend.routes.candidates.get_settings", return_value={"email_provider": "resend", "resend_api_key": "re_test-secret-key"}):
+        delivery_error = EmailDeliveryError("Email delivery failed")
+        delivery_error.__cause__ = provider_error
+        email_class.return_value.send_candidate_email = AsyncMock(side_effect=delivery_error)
+        with caplog.at_level("ERROR"):
+            response = TestClient(app).post(f"/api/candidates/{candidate['candidate_id']}/send-email")
+
+    assert response.status_code == 502
+    assert response.json()["detail"] == "Email delivery failed"
+    assert "exception_type=HTTPStatusError" in caplog.text
+    assert "re_test-secret-key" not in caplog.text
+    assert all(token not in caplog.text for token in ["approval-token", "phase5-test-secret"])
 
 
 def test_email_template_contains_repository_and_decision_links(candidate):
