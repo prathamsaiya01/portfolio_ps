@@ -17,11 +17,15 @@ logger = logging.getLogger(__name__)
 async def get_published_projects():
     db = get_database()
     if db is None:
+        logger.error("Published portfolio database unavailable: type=DatabaseNotConfigured")
         raise HTTPException(status_code=503, detail="Database is not configured")
+    logger.info("Published portfolio database obtained")
 
     try:
         cursor = db.published_projects.find({"status": "PUBLISHED"}).sort("display_order", 1)
+        logger.info("Published portfolio query created")
         documents = await cursor.to_list(length=500)
+        logger.info("Published portfolio documents fetched: count=%d", len(documents))
     except Exception as exc:
         logger.exception(
             "Published portfolio query failed: type=%s message=%s",
@@ -30,7 +34,19 @@ async def get_published_projects():
         )
         raise HTTPException(status_code=503, detail="Published portfolio is unavailable") from exc
 
-    return [PublicPublishedProject(**document).model_dump(mode="python") for document in documents]
+    try:
+        response = [PublicPublishedProject(**document).model_dump(mode="python") for document in documents]
+        logger.info("Published portfolio documents converted: count=%d", len(response))
+    except Exception as exc:
+        logger.exception(
+            "Published portfolio serialization failed: type=%s message=%s",
+            type(exc).__name__,
+            _safe_database_error_message(exc),
+        )
+        raise HTTPException(status_code=503, detail="Published portfolio is unavailable") from exc
+
+    logger.info("Published portfolio response returned: count=%d", len(response))
+    return response
 
 
 def _safe_database_error_message(exc: Exception) -> str:

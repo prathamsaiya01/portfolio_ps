@@ -166,6 +166,25 @@ def test_public_endpoint_returns_only_sanitized_published_records():
     assert "approval_token" not in response.text
 
 
+def test_public_endpoint_returns_empty_list_when_no_projects():
+    with patch("backend.routes.portfolio.get_database", return_value=Db(published=[])):
+        response = TestClient(app).get("/api/portfolio/projects")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_public_endpoint_returns_503_on_serialization_failure(caplog):
+    invalid = PortfolioPublishingService._new_record(candidate(), project(), datetime.now(timezone.utc), 1)
+    invalid.pop("title")
+    with patch("backend.routes.portfolio.get_database", return_value=Db(published=[invalid])), caplog.at_level("ERROR"):
+        response = TestClient(app).get("/api/portfolio/projects")
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Published portfolio is unavailable"
+    assert "Published portfolio serialization failed" in caplog.text
+
+
 def test_public_endpoint_logs_database_exception_without_changing_safe_response(caplog):
     class FailingCollection:
         def find(self, query):
