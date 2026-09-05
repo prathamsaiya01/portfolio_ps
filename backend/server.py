@@ -16,6 +16,7 @@ from backend.config import get_cors_origins
 from backend.database import close_database_connection, get_database
 from backend.routes.candidates import router as candidates_router
 from backend.routes.approval import router as approval_router
+from backend.routes.diagnostics import router as diagnostics_router
 from backend.routes.github import router as github_router
 from backend.routes.github_webhook import router as github_webhook_router
 from backend.routes.health import router as health_router
@@ -97,6 +98,7 @@ app.include_router(projects_router)
 app.include_router(candidates_router)
 app.include_router(approval_router)
 app.include_router(portfolio_router)
+app.include_router(diagnostics_router)
 
 app.add_middleware(
     CORSMiddleware,
