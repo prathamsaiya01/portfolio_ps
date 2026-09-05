@@ -14,9 +14,10 @@ class PortfolioPublishingService:
     PUBLISHED = "PUBLISHED"
     UNPUBLISHED = "UNPUBLISHED"
 
-    async def publish_approved_candidate(self, db: Any, candidate: Dict[str, Any], project: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def publish_approved_candidate(self, db: Any, candidate: Dict[str, Any], project: Optional[Dict[str, Any]] = None, project_name: Optional[str] = None) -> Dict[str, Any]:
         if str(candidate.get("candidate_status") or "").upper() != "APPROVED":
             raise PortfolioPublishingError("Only approved candidates can be published")
+        project_name = project_name.strip() if project_name else None
         collection = getattr(db, "published_projects", None)
         if collection is None or not hasattr(collection, "find_one"):
             raise PortfolioPublishingError("Published portfolio is not configured")
@@ -36,12 +37,12 @@ class PortfolioPublishingService:
             raise PortfolioPublishingError("Published portfolio is not configured")
         existing = await existing_result
         if existing:
-            record = self._updated_record(existing, candidate, project, now)
+            record = self._updated_record(existing, candidate, project, now, project_name)
             await collection.update_one({"github_repo_id": repo_id}, {"$set": record})
             return record
 
         display_order = await self._next_display_order(collection)
-        record = self._new_record(candidate, project, now, display_order)
+        record = self._new_record(candidate, project, now, display_order, project_name)
         await collection.insert_one(record)
         return record
 
@@ -91,12 +92,12 @@ class PortfolioPublishingService:
             return 1
 
     @staticmethod
-    def _new_record(candidate: Dict[str, Any], project: Dict[str, Any], now: datetime, display_order: int) -> Dict[str, Any]:
+    def _new_record(candidate: Dict[str, Any], project: Dict[str, Any], now: datetime, display_order: int, project_name: Optional[str] = None) -> Dict[str, Any]:
         return {
             "id": f"published-{uuid.uuid4().hex}",
             "github_repo_id": str(candidate.get("github_repo_id") or project.get("github_repo_id")),
             "candidate_id": candidate.get("candidate_id"),
-            "title": candidate.get("suggested_title") or candidate.get("repository_name") or project.get("repository_name") or "Untitled project",
+            "title": project_name or candidate.get("suggested_title") or candidate.get("repository_name") or project.get("repository_name") or "Untitled project",
             "description": candidate.get("suggested_description") or candidate.get("description") or project.get("description") or "",
             "github_url": candidate.get("github_url") or project.get("github_url"),
             "live_url": candidate.get("live_url") or project.get("homepage_url"),
@@ -118,7 +119,7 @@ class PortfolioPublishingService:
         }
 
     @staticmethod
-    def _updated_record(existing: Dict[str, Any], candidate: Dict[str, Any], project: Dict[str, Any], now: datetime) -> Dict[str, Any]:
+    def _updated_record(existing: Dict[str, Any], candidate: Dict[str, Any], project: Dict[str, Any], now: datetime, project_name: Optional[str] = None) -> Dict[str, Any]:
         updated = dict(existing)
         updated.update({
             "candidate_id": existing.get("candidate_id") or candidate.get("candidate_id"),
@@ -131,6 +132,8 @@ class PortfolioPublishingService:
             "status": PortfolioPublishingService.PUBLISHED,
             "updated_at": now,
         })
-        if not existing.get("title_manual"):
+        if project_name:
+            updated["title"] = project_name
+        elif not existing.get("title_manual"):
             updated["title"] = candidate.get("suggested_title") or candidate.get("repository_name") or project.get("repository_name") or existing.get("title")
         return updated

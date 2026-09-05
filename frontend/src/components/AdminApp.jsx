@@ -203,22 +203,29 @@ function SettingsPage() { return <div className="page-stack"><section className=
 
 export function ApprovalResult() {
   const { token } = useParams();
-  const [state, setState] = useState({ status: 'loading', name: '', action: '', message: '' });
+  const [state, setState] = useState({ status: 'loading', name: '', repository: '', action: '', message: '' });
+  const [projectName, setProjectName] = useState('');
   useEffect(() => {
     let active = true;
     const process = async () => {
       try {
         const preview = await getApproval(token);
+        if (preview.action === 'APPROVE') {
+          if (active) setState({ status: 'awaiting_name', name: preview.candidate_name, repository: preview.repository_name, action: preview.action, message: '' });
+          return;
+        }
         const result = await applyApproval(token, preview.action);
-        if (active) setState({ status: result.status === 'already_processed' ? 'already_processed' : 'success', name: result.candidate_name, action: result.decision, message: '' });
+        if (active) setState({ status: result.status === 'already_processed' ? 'already_processed' : 'success', name: result.candidate_name, repository: preview.repository_name, action: result.decision, message: '' });
       } catch (error) {
-        if (active) setState({ status: error.message.includes('expired') ? 'expired' : 'error', name: '', action: '', message: error.message });
+        if (active) setState({ status: error.message.includes('expired') ? 'expired' : 'error', name: '', repository: '', action: '', message: error.message });
       }
     };
     process();
     return () => { active = false; };
   }, [token]);
   if (state.status === 'loading') return <div className="approval-page"><div className="approval-card"><RefreshCw className="spin" size={25} /><p>Checking your approval link...</p></div></div>;
+  if (state.status === 'awaiting_name') return <div className="approval-page approval-awaiting"><div className="approval-card"><div className="approval-symbol"><CheckCircle2 size={28} /></div><p className="admin-kicker">Portfolio approval</p><h1>Approve & publish</h1><p className="approval-repository">Repository: <strong>{state.repository}</strong></p><label className="approval-field">Project name<input value={projectName} maxLength={100} onChange={(event) => setProjectName(event.target.value)} placeholder="Name shown on your portfolio" autoFocus /></label><button className="admin-button button-primary" disabled={!projectName.trim()} onClick={async () => { setState((current) => ({ ...current, status: 'submitting', message: '' })); try { const result = await applyApproval(token, 'APPROVE', projectName.trim()); setState((current) => ({ ...current, status: result.status === 'already_processed' ? 'already_processed' : 'success', action: result.decision, name: result.candidate_name })); } catch (error) { setState((current) => ({ ...current, status: error.message.includes('expired') ? 'expired' : 'error', message: error.message })); } }}>{state.status === 'submitting' ? 'Publishing...' : 'Approve & Publish'}</button><Link className="approval-cancel" to="/">Cancel</Link>{state.message && <p className="approval-form-error">{state.message}</p>}</div></div>;
+  if (state.status === 'submitting') return <div className="approval-page"><div className="approval-card"><RefreshCw className="spin" size={25} /><p>Publishing your project...</p></div></div>;
   const heading = state.status === 'success' ? state.action === 'APPROVED' ? 'Approved' : state.action === 'REJECTED' ? 'Rejected' : 'Review later' : state.status === 'already_processed' ? 'Already processed' : state.status === 'expired' ? 'Link expired' : 'Link unavailable';
   const message = state.status === 'success' ? `${state.name} has been ${state.action === 'APPROVED' ? 'approved for future portfolio publication' : state.action === 'REJECTED' ? 'rejected and will not be added' : 'marked for later review'}.` : state.status === 'already_processed' ? 'This decision has already been processed.' : state.status === 'expired' ? 'This approval link has expired.' : 'This approval link is invalid or unavailable.';
   return <div className={`approval-page approval-${state.status}`}><div className="approval-card"><div className="approval-symbol">{state.status === 'success' ? <CheckCircle2 size={28} /> : <CircleAlert size={28} />}</div><p className="admin-kicker">Portfolio decision</p><h1>{heading}</h1><p>{message}</p><Link className="admin-button button-primary" to="/admin">Return to command center</Link></div></div>;

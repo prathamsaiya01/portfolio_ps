@@ -86,7 +86,7 @@ async def test_candidate_state_transitions_and_metadata(candidate, action, targe
     service = ApprovalService(ApprovalTokenService(secret="phase5-test-secret"))
     token = service.token_service.create_token(candidate["candidate_id"], action)
 
-    result = await service.apply(db, token)
+    result = await service.apply(db, token, project_name="CareerMitra") if action == "APPROVE" else await service.apply(db, token)
 
     assert result["status"] == "processed"
     assert db.candidates.candidate["candidate_status"] == target
@@ -102,8 +102,8 @@ async def test_already_processed_token_is_safe(candidate):
     service = ApprovalService(ApprovalTokenService(secret="phase5-test-secret"))
     token = service.token_service.create_token(candidate["candidate_id"], "APPROVE")
 
-    first = await service.apply(db, token)
-    second = await service.apply(db, token)
+    first = await service.apply(db, token, project_name="CareerMitra")
+    second = await service.apply(db, token, project_name="CareerMitra")
 
     assert first["status"] == "processed"
     assert second["status"] == "already_processed"
@@ -134,15 +134,39 @@ def test_approval_endpoints_and_result_are_safe(monkeypatch, candidate):
         preview = client.get(f"/api/approval/{token}")
         assert preview.status_code == 200
         assert preview.json()["action"] == "APPROVE"
-        response = client.post(f"/api/approval/{token}", json={"action": "APPROVE"})
+        response = client.post(f"/api/approval/{token}", json={"action": "APPROVE", "project_name": "CareerMitra"})
         assert response.status_code == 200
         assert response.json()["status"] == "processed"
-        replay = client.post(f"/api/approval/{token}", json={"action": "APPROVE"})
+        replay = client.post(f"/api/approval/{token}", json={"action": "APPROVE", "project_name": "CareerMitra"})
         assert replay.status_code == 200
         assert replay.json()["status"] == "already_processed"
         invalid = client.get("/api/approval/not-a-token")
         assert invalid.status_code == 400
         assert "candidate-phase5" not in invalid.text
+
+
+@pytest.mark.parametrize("project_name", [None, "   "])
+def test_approve_requires_non_empty_project_name(project_name, candidate):
+    db = MagicMock()
+    db.candidates = InMemoryCandidates(candidate)
+    token = ApprovalTokenService(secret="phase5-test-secret").create_token(candidate["candidate_id"], "APPROVE")
+    with patch("backend.routes.approval.get_database", return_value=db):
+        payload = {"action": "APPROVE"}
+        if project_name is not None:
+            payload["project_name"] = project_name
+        response = TestClient(app).post(f"/api/approval/{token}", json=payload)
+    assert response.status_code == 400
+    assert db.candidates.update_calls == []
+
+
+def test_approve_rejects_project_name_over_maximum(candidate):
+    db = MagicMock()
+    db.candidates = InMemoryCandidates(candidate)
+    token = ApprovalTokenService(secret="phase5-test-secret").create_token(candidate["candidate_id"], "APPROVE")
+    with patch("backend.routes.approval.get_database", return_value=db):
+        response = TestClient(app).post(f"/api/approval/{token}", json={"action": "APPROVE", "project_name": "x" * 101})
+    assert response.status_code == 422
+    assert db.candidates.update_calls == []
 
 
 def test_email_service_success_and_failure(candidate):

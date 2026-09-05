@@ -26,10 +26,11 @@ class ApprovalService:
         return {
             "action": payload["act"],
             "candidate_name": candidate.get("suggested_title") or candidate.get("repository_name") or "This project",
+            "repository_name": candidate.get("full_name") or candidate.get("repository_name") or "This repository",
             "expires_at": datetime.fromtimestamp(payload["exp"], tz=timezone.utc),
         }
 
-    async def apply(self, db: Any, token: str, expected_action: str | None = None) -> Dict[str, Any]:
+    async def apply(self, db: Any, token: str, expected_action: str | None = None, project_name: str | None = None) -> Dict[str, Any]:
         payload = self.token_service.decode_token(token, expected_action=expected_action)
         candidate = await db.candidates.find_one({"candidate_id": payload["cid"]})
         if not candidate:
@@ -42,6 +43,9 @@ class ApprovalService:
         current_status = str(candidate.get("candidate_status") or "").upper()
         action = payload["act"]
         target_status = self.ACTION_TARGETS[action]
+        if action == "APPROVE" and not (project_name and project_name.strip()):
+            raise ApprovalTokenError("Project name is required for approval")
+        project_name = project_name.strip() if project_name else None
         if current_status not in self.ELIGIBLE_STATUSES:
             return self._result(candidate, "already_processed")
 
@@ -68,7 +72,7 @@ class ApprovalService:
         updated_candidate = {**candidate, **update}
         if action == "APPROVE":
             try:
-                published = await PortfolioPublishingService().publish_approved_candidate(db, updated_candidate)
+                published = await PortfolioPublishingService().publish_approved_candidate(db, updated_candidate, project_name=project_name)
             except PortfolioPublishingError as exc:
                 # Approval is authoritative; publication can be retried without changing it.
                 if str(exc) not in {"Published portfolio is not configured", "Approved candidate has no repository identity"}:

@@ -97,11 +97,12 @@ def project():
 async def test_approved_candidate_publishes_and_republishing_is_idempotent():
     db = Db(projects=[project()])
     service = PortfolioPublishingService()
-    first = await service.publish_approved_candidate(db, candidate(), project())
-    second = await service.publish_approved_candidate(db, candidate(), project())
+    first = await service.publish_approved_candidate(db, candidate(), project(), project_name="  CareerMitra  ")
+    second = await service.publish_approved_candidate(db, candidate(), project(), project_name="CareerMitra")
 
     assert first["status"] == "PUBLISHED"
     assert first["source"] == "GITHUB_APPROVAL"
+    assert first["title"] == "CareerMitra"
     assert first["display_order"] == 1
     assert second["id"] == first["id"]
     assert len(db.published_projects.records) == 1
@@ -225,7 +226,7 @@ async def test_approval_publishes_and_public_failure_does_not_revert_approval():
     db.candidates.records.append({**candidate("CANDIDATE"), "consumed_approval_token_ids": []})
     token_service = ApprovalTokenService(secret="phase7-secret")
     token = token_service.create_token("candidate-7", "APPROVE")
-    result = await ApprovalService(token_service).apply(db, token)
+    result = await ApprovalService(token_service).apply(db, token, project_name="CareerMitra")
     assert result["decision"] == "APPROVED"
     assert db.published_projects.records[0]["status"] == "PUBLISHED"
     assert db.candidates.records[0]["candidate_status"] == "APPROVED"
@@ -234,7 +235,20 @@ async def test_approval_publishes_and_public_failure_does_not_revert_approval():
     failing_db.candidates.records.append({**candidate("CANDIDATE"), "consumed_approval_token_ids": []})
     failing_db.published_projects.find_one = AsyncMock(side_effect=RuntimeError("storage unavailable"))
     failing_token = token_service.create_token("candidate-7", "APPROVE")
-    failed_result = await ApprovalService(token_service).apply(failing_db, failing_token)
+    failed_result = await ApprovalService(token_service).apply(failing_db, failing_token, project_name="CareerMitra")
     assert failed_result["decision"] == "APPROVED"
     assert failing_db.candidates.records[0]["candidate_status"] == "APPROVED"
     assert failing_db.candidates.records[0]["publishing_status"] == "FAILED"
+
+
+@pytest.mark.asyncio
+async def test_approved_project_name_is_trimmed_and_public_api_returns_title():
+    db = Db(projects=[project()])
+    candidate_record = candidate("APPROVED", suggested_title="Generated title")
+    published = await PortfolioPublishingService().publish_approved_candidate(db, candidate_record, project(), project_name="  Chosen Portfolio Name  ")
+
+    assert published["title"] == "Chosen Portfolio Name"
+    with patch("backend.routes.portfolio.get_database", return_value=db):
+        response = TestClient(app).get("/api/portfolio/projects")
+    assert response.status_code == 200
+    assert response.json()[0]["title"] == "Chosen Portfolio Name"

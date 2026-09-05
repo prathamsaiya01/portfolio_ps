@@ -26,6 +26,6 @@ export const getPortfolioRanking = () => request(api.get('/portfolio/ranking'));
 export const getPortfolioHealth = () => request(api.get('/portfolio/health'));
 export const sendCandidateEmail = (candidateId) => request(api.post(`/candidates/${candidateId}/send-email`));
 export const getApproval = (token) => request(api.get(`/approval/${encodeURIComponent(token)}`));
-export const applyApproval = (token, action) => request(api.post(`/approval/${encodeURIComponent(token)}`, { action }));
+export const applyApproval = (token, action, projectName) => request(api.post(`/approval/${encodeURIComponent(token)}`, { action, ...(projectName ? { project_name: projectName } : {}) }));
 
 export default api;
