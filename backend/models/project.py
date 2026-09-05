@@ -24,6 +24,7 @@ class ProjectRecord(BaseModel):
     forks: int = 0
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    pushed_at: Optional[datetime] = None
     last_commit_at: Optional[datetime] = None
     contributors: List[str] = Field(default_factory=list)
     commit_count: int = 0

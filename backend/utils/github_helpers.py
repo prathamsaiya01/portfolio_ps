@@ -20,6 +20,7 @@ def normalize_repo_payload(repo: Dict[str, Any]) -> Dict[str, Any]:
     readme = repo.get("readme") or ""
     created_at = parse_datetime(repo.get("created_at"))
     updated_at = parse_datetime(repo.get("updated_at"))
+    pushed_at = parse_datetime(repo.get("pushed_at"))
     last_commit_at = parse_datetime(repo.get("last_commit_at"))
 
     return {
@@ -38,6 +39,7 @@ def normalize_repo_payload(repo: Dict[str, Any]) -> Dict[str, Any]:
         "forks": int(repo.get("forks_count") or repo.get("forks") or 0),
         "created_at": created_at,
         "updated_at": updated_at,
+        "pushed_at": pushed_at,
         "last_commit_at": last_commit_at,
         "contributors": repo.get("contributors") or [],
         "commit_count": int(repo.get("commit_count") or 0),

@@ -70,6 +70,8 @@ class GitHubWebhookService:
         delivery_id: Optional[str] = None,
         email_suppressed: bool = False,
         sync_published_metadata: bool = True,
+        force_email: bool = False,
+        email_activity_key: Optional[str] = None,
     ) -> Dict[str, Any]:
         if not self.is_relevant_event(event, payload):
             return {"status": "ignored", "event": event, "reason": "event is not relevant"}
@@ -141,7 +143,8 @@ class GitHubWebhookService:
             if email_suppressed:
                 email_status = "SUPPRESSED"
             elif decision["candidate_decision"] == "CANDIDATE" and candidate.get("candidate_status") not in TERMINAL_CANDIDATE_STATUSES:
-                if str(candidate.get("email_status") or "NOT_SENT").upper() != "SENT":
+                already_sent = str(candidate.get("email_status") or "NOT_SENT").upper() == "SENT"
+                if not already_sent or force_email:
                     try:
                         await self.email_service.send_candidate_email(candidate)
                     except EmailDeliveryError:

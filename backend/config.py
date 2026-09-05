@@ -70,6 +70,7 @@ def get_settings() -> dict:
         "ranking_diversity_weight": get_env("RANKING_DIVERSITY_WEIGHT", "0.05"),
         "similarity_threshold": get_env("SIMILARITY_THRESHOLD", "65"),
         "similarity_penalty": get_env("SIMILARITY_PENALTY", "18"),
+        "github_automation_enabled": get_env("GITHUB_AUTOMATION_ENABLED", "false"),
     }
 
 
