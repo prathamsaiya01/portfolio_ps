@@ -147,6 +147,12 @@ class GitHubService:
             raise GitHubServiceError("GitHub repository was not found")
         return await self._enrich_repo(repository)
 
+    async def fetch_repository_by_id(self, github_repo_id: str) -> Dict[str, Any]:
+        repository = await self._request_json(f"{self.base_url}/repositories/{github_repo_id}")
+        if not repository:
+            raise GitHubServiceError("GitHub repository was not found")
+        return await self._enrich_repo(repository)
+
     async def _enrich_repo(self, repo: Dict[str, Any], contributors: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         repo_id = repo.get("id")
         if repo_id is None:

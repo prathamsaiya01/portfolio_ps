@@ -62,7 +62,15 @@ class GitHubWebhookService:
         allowed_actions = SUPPORTED_EVENTS[event_name]
         return allowed_actions is None or str(payload.get("action") or "").lower() in allowed_actions
 
-    async def process(self, event: str, payload: Dict[str, Any], db: Any, delivery_id: Optional[str] = None) -> Dict[str, Any]:
+    async def process(
+        self,
+        event: str,
+        payload: Dict[str, Any],
+        db: Any,
+        delivery_id: Optional[str] = None,
+        email_suppressed: bool = False,
+        sync_published_metadata: bool = True,
+    ) -> Dict[str, Any]:
         if not self.is_relevant_event(event, payload):
             return {"status": "ignored", "event": event, "reason": "event is not relevant"}
 
@@ -121,7 +129,8 @@ class GitHubWebhookService:
             "updated_at_db": now,
         })
         await db.projects.update_one({"github_repo_id": normalized["github_repo_id"]}, {"$set": project_doc})
-        await PortfolioPublishingService().sync_project_metadata(db, project_doc)
+        if sync_published_metadata:
+            await PortfolioPublishingService().sync_project_metadata(db, project_doc)
 
         portfolio_records = await self._load_featured(db)
         decision = PortfolioIntelligenceService(portfolio_records).evaluate_project(project_doc)
@@ -129,7 +138,9 @@ class GitHubWebhookService:
         email_status = "NOT_SENT"
         if decision["candidate_decision"] in {"CANDIDATE", "REVIEW"}:
             candidate = await self._upsert_candidate(db, project_doc, decision)
-            if decision["candidate_decision"] == "CANDIDATE" and candidate.get("candidate_status") not in TERMINAL_CANDIDATE_STATUSES:
+            if email_suppressed:
+                email_status = "SUPPRESSED"
+            elif decision["candidate_decision"] == "CANDIDATE" and candidate.get("candidate_status") not in TERMINAL_CANDIDATE_STATUSES:
                 if str(candidate.get("email_status") or "NOT_SENT").upper() != "SENT":
                     try:
                         await self.email_service.send_candidate_email(candidate)
