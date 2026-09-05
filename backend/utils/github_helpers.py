@@ -50,6 +50,7 @@ def normalize_repo_payload(repo: Dict[str, Any]) -> Dict[str, Any]:
         "analyzed_at": parse_datetime(repo.get("analyzed_at")),
         "sync_status": repo.get("sync_status") or "synced",
         "last_synced_at": parse_datetime(repo.get("last_synced_at")) or datetime.now(timezone.utc),
+        "contribution_evidence": repo.get("contribution_evidence") or {},
     }
 
 

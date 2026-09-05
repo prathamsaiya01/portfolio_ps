@@ -80,27 +80,11 @@ async def analyze_project(github_repo_id: str):
             existing_docs = []
     current = ProjectRecord(**project_doc)
 
-    try:
-        analyzer = ProjectAnalyzer()
-        analysis = await analyzer.analyze_project(current.model_dump(mode="python"), existing_docs)
-    except Exception as exc:
-        logger.exception("Project analysis failed")
-        await db.projects.update_one(
-            {"github_repo_id": github_repo_id},
-            {
-                "$set": {
-                    "analysis_status": "FAILED",
-                    "analysis": {},
-                    "overall_score": None,
-                    "recommendation": "IGNORE",
-                    "updated_at_db": datetime.now(timezone.utc),
-                }
-            },
-        )
-        raise HTTPException(status_code=503, detail=f"Analysis failed: {exc}") from exc
+    analyzer = ProjectAnalyzer()
+    analysis = await analyzer.analyze_project(current.model_dump(mode="python"), existing_docs)
 
     payload = {
-        "analysis_status": "ANALYZED",
+        "analysis_status": "AI_UNAVAILABLE" if analysis.get("ai_analysis_status") == "UNAVAILABLE" else "ANALYZED",
         "analysis_version": "phase2-v1",
         "analyzed_at": datetime.now(timezone.utc),
         "analysis": analysis,

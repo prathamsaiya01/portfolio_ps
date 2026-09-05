@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import inspect
 import hmac
 import logging
 from datetime import datetime, timezone
@@ -72,12 +73,26 @@ class GitHubWebhookService:
         if not owner or not name:
             raise WebhookPayloadError("Webhook repository information is incomplete")
 
+        contribution_evidence = None
+        evidence_method = getattr(self.github_service, "get_user_contribution_evidence", None)
+        if inspect.iscoroutinefunction(evidence_method):
+            contribution_evidence = await evidence_method(str(owner), str(name))
+            if not contribution_evidence.get("meaningful_contribution"):
+                return {
+                    "status": "ignored",
+                    "event": event,
+                    "reason": "no meaningful contribution evidence",
+                    "github_repo_id": str(repository.get("id") or ""),
+                }
+
         repository_id = str(repository.get("id") or "")
         existing_project = await db.projects.find_one({"github_repo_id": repository_id}) if repository_id else None
         if delivery_id and existing_project and existing_project.get("last_webhook_delivery_id") == delivery_id:
             return {"status": "duplicate", "event": event, "github_repo_id": repository_id}
 
         fetched = await self.github_service.fetch_repository(str(owner), str(name))
+        if contribution_evidence is not None:
+            fetched["contribution_evidence"] = contribution_evidence
         normalized = normalize_repo_payload(fetched)
         now = datetime.now(timezone.utc)
         project_doc = {**(existing_project or {}), **normalized}
@@ -200,6 +215,7 @@ class GitHubWebhookService:
             "similarity_flags": decision.get("similarity_flags") or [],
             "differentiation_reason": decision.get("differentiation_reason"),
             "scores": (project.get("analysis") or {}).get("scores") or {},
+            "contribution_evidence": project.get("contribution_evidence") or {},
             "created_at": (candidate_existing or {}).get("created_at") or datetime.now(timezone.utc),
             "updated_at": datetime.now(timezone.utc),
         }

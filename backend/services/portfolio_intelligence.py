@@ -88,6 +88,8 @@ class PortfolioIntelligenceService:
         return "This project overlaps materially with the current portfolio and should be reviewed before promotion."
 
     def _quality_gate(self, overall_score: int, duplicate_risk: str, portfolio_fit_score: int, project: Dict[str, Any]) -> str:
+        if (project.get("analysis") or {}).get("ai_analysis_status") == "UNAVAILABLE":
+            return "REVIEW"
         threshold = get_analysis_thresholds()
         ignore_max = int(threshold.get("ignore_max", 64))
         candidate_min = int(threshold.get("candidate_min", 85))

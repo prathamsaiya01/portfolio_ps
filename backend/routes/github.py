@@ -32,7 +32,7 @@ async def sync_github_repositories():
 
     service = GitHubService()
     try:
-        repositories = await service.fetch_repositories()
+        repositories = await service.discover_repositories()
     except GitHubServiceError as exc:  # pragma: no cover - exercised in tests via mocks
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
@@ -71,8 +71,8 @@ async def sync_github_repositories():
 
     return GitHubSyncResponse(
         status="success",
-        repositories_fetched=len(repositories),
+        repositories_fetched=service.discovery_stats.get("listed", len(repositories)),
         repositories_upserted=inserted,
-        repositories_skipped=skipped,
+        repositories_skipped=skipped + service.discovery_stats.get("skipped", 0) + service.discovery_stats.get("failed", 0),
         owner=owner,
     )

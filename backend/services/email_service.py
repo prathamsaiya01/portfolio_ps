@@ -67,6 +67,7 @@ class EmailService:
 
     def _build_message(self, candidate: Dict[str, Any], links: Dict[str, str], sender: str, recipient: str) -> EmailMessage:
         name = self._text(candidate.get("suggested_title") or candidate.get("repository_name"), "Untitled project")
+        repository = self._text(candidate.get("full_name") or candidate.get("repository_name"))
         description = self._text(candidate.get("suggested_description") or candidate.get("description"))
         scores = candidate.get("scores") or {}
         evidence = candidate.get("evidence") or []
@@ -75,6 +76,7 @@ class EmailService:
         text = (
             f"Portfolio recommendation: {name}\n\n"
             "This project is a recommendation for future portfolio publication. It has not been published.\n\n"
+            f"Repository: {repository}\n"
             f"Suggested description: {description}\n"
             f"Overall score: {self._text(candidate.get('overall_score'))}\n"
             f"Candidate priority: {self._text(candidate.get('candidate_priority'))}\n"
@@ -88,12 +90,14 @@ class EmailService:
             f"Approve: {links['APPROVE']}\nReject: {links['REJECT']}\nReview later: {links['REVIEW']}"
         )
         safe_name = html.escape(name)
+        safe_repository = html.escape(repository)
         safe_description = html.escape(description)
         safe_evidence = "".join(f"<li>{html.escape(self._text(item))}</li>" for item in evidence) or "<li>Not recorded</li>"
         html_body = f"""
         <html><body style=\"font-family:Arial,sans-serif;color:#17211e;line-height:1.5\">
         <h2>New portfolio candidate: {safe_name}</h2>
         <p><strong>Recommendation for future publication.</strong> This project has not been published.</p>
+        <p><strong>Repository:</strong> {safe_repository}</p>
         <p>{safe_description}</p>
         <table cellpadding=\"8\"><tr><td>Overall score</td><td>{html.escape(self._text(candidate.get('overall_score')))}</td></tr>
         <tr><td>Candidate priority</td><td>{html.escape(self._text(candidate.get('candidate_priority')))}</td></tr>

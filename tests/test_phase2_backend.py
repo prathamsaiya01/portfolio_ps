@@ -78,6 +78,25 @@ async def test_ollama_service_successful_analysis(sample_project, existing_proje
     assert result["recommendation"] == "REVIEW"
 
 
+def test_ollama_prompt_is_a_string(sample_project, existing_projects):
+    prompt = OllamaService(model="qwen2.5:1.5b")._build_prompt(sample_project, existing_projects)
+
+    assert isinstance(prompt, str)
+    assert "The project context is:" in prompt
+
+
+@pytest.mark.asyncio
+async def test_local_qwen_generation_succeeds(sample_project):
+    service = OllamaService(model="qwen2.5:1.5b", timeout=60.0)
+    if not await service.check_availability():
+        pytest.skip("Local Ollama is unavailable")
+
+    result = await service.analyze_repository(sample_project, [])
+
+    assert isinstance(result, dict)
+    assert result["recommendation"] in {"IGNORE", "REVIEW", "CANDIDATE"}
+
+
 @pytest.mark.asyncio
 async def test_ollama_service_rejects_malformed_response(sample_project, existing_projects):
     mock_response = MagicMock()
@@ -226,5 +245,7 @@ async def test_analysis_route_handles_ollama_unavailable(sample_project):
          patch("backend.services.project_analyzer.OllamaService.analyze_repository", side_effect=Exception("offline")):
         client = TestClient(app)
         response = client.post("/api/projects/101/analyze")
-        assert response.status_code == 503
-        assert "analysis" in response.json()["detail"].lower()
+        assert response.status_code == 200
+        assert response.json()["analysis_status"] == "AI_UNAVAILABLE"
+        assert response.json()["analysis"]["ai_analysis_status"] == "UNAVAILABLE"
+        assert response.json()["recommendation"] == "REVIEW"

@@ -166,6 +166,23 @@ def test_public_endpoint_returns_only_sanitized_published_records():
     assert "approval_token" not in response.text
 
 
+def test_public_endpoint_logs_database_exception_without_changing_safe_response(caplog):
+    class FailingCollection:
+        def find(self, query):
+            raise RuntimeError("database connection failed")
+
+    class FailingDb:
+        published_projects = FailingCollection()
+
+    with patch("backend.routes.portfolio.get_database", return_value=FailingDb()), caplog.at_level("ERROR"):
+        response = TestClient(app).get("/api/portfolio/projects")
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Published portfolio is unavailable"
+    assert "type=RuntimeError" in caplog.text
+    assert "database connection failed" in caplog.text
+
+
 @pytest.mark.asyncio
 async def test_approval_publishes_and_public_failure_does_not_revert_approval():
     db = Db(projects=[project()])

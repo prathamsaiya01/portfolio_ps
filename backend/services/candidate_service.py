@@ -51,6 +51,7 @@ class CandidateService:
             "similarity_flags": payload.get("similarity_flags") or [],
             "differentiation_reason": payload.get("differentiation_reason"),
             "scores": payload.get("scores") or {},
+            "contribution_evidence": payload.get("contribution_evidence") or {},
         }
         return new_candidate
 

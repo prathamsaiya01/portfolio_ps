@@ -64,6 +64,7 @@ class CandidateRecord(BaseModel):
     publishing_status: str = "NOT_PUBLISHED"
     publishing_error: Optional[str] = None
     published_project_id: Optional[str] = None
+    contribution_evidence: Dict[str, Any] = Field(default_factory=dict)
 
     @classmethod
     def from_payload(cls, payload: Dict[str, Any]) -> "CandidateRecord":

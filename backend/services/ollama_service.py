@@ -16,7 +16,7 @@ class OllamaServiceError(RuntimeError):
 
 
 class OllamaService:
-    def __init__(self, base_url: Optional[str] = None, model: Optional[str] = None, timeout: float = 30.0):
+    def __init__(self, base_url: Optional[str] = None, model: Optional[str] = None, timeout: float = 120.0):
         settings = get_settings()
         self.base_url = (base_url or settings.get("ollama_base_url") or "http://localhost:11434").rstrip("/")
         self.model = model or settings.get("ollama_model")
@@ -99,7 +99,7 @@ class OllamaService:
             ],
         }
 
-        return (
+        return "".join((
             "You are evaluating a GitHub repository for a portfolio.",
             "\nUse only repository evidence. Do not fabricate facts.",
             "\nIf evidence is unavailable, say evidence is unavailable.",
@@ -108,7 +108,7 @@ class OllamaService:
             "\nThe scores object must include technical_depth, complexity, originality, impact, engineering_quality, maturity, collaboration, portfolio_fit as integers from 0 to 100.",
             "\nRecommendation must be one of IGNORE, REVIEW, or CANDIDATE.",
             "\nThe project context is: " + json.dumps(summary_context, ensure_ascii=True)
-        )
+        ))
 
     def _normalize_analysis(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
         scores = analysis.get("scores") or {}

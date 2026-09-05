@@ -169,6 +169,21 @@ def test_email_service_success_and_failure(candidate):
             __import__("asyncio").run(service.send_candidate_email(candidate))
 
 
+def test_email_template_contains_repository_and_decision_links(candidate):
+    candidate["full_name"] = "Heetshah21/igniteHackathon404Found"
+    service = EmailService(settings={"frontend_base_url": "https://portfolio.example.com"}, token_service=ApprovalTokenService(secret="phase5-test-secret"))
+    links = {action: f"https://portfolio.example.com/approval/token-{action.lower()}" for action in ("APPROVE", "REJECT", "REVIEW")}
+    message = service._build_message(candidate, links, "sender@example.com", "recipient@example.com")
+    body = "\n".join(part.get_content() for part in message.walk() if part.get_content_type() in {"text/plain", "text/html"})
+
+    assert candidate["suggested_title"] in body
+    assert candidate["full_name"] in body
+    assert "YES - ADD TO PORTFOLIO" in body
+    assert "NO - REJECT" in body
+    assert "REVIEW LATER" in body
+    assert body.count("/approval/") == 6
+
+
 def test_send_email_endpoint_success_failure_and_duplicate(candidate):
     db = MagicMock()
     db.candidates = InMemoryCandidates(candidate)

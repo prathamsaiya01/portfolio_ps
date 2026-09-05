@@ -43,6 +43,7 @@ class ProjectRecord(BaseModel):
     recommendation: str = "IGNORE"
     created_at_db: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at_db: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    contribution_evidence: Dict[str, Any] = Field(default_factory=dict)
 
     @classmethod
     def from_payload(cls, payload: Dict[str, Any]) -> "ProjectRecord":
