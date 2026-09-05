@@ -8,6 +8,7 @@ from backend.server import app
 from backend.services.github_webhook_service import GitHubWebhookService
 
 from tests.test_phase6_backend import FakeDb
+from tests.test_phase7_backend import Db, project
 
 
 REPO_ID = "1355830961"
@@ -127,3 +128,48 @@ def test_webhook_processor_flags_skip_publishing_and_email():
     github.discover_repositories.assert_not_awaited()
     email.send_candidate_email.assert_not_awaited()
     publishing.sync_project_metadata.assert_not_awaited()
+
+
+def test_republish_approved_candidate_is_idempotent_and_does_not_email_or_token():
+    candidate = {
+        "candidate_id": "candidate-repair",
+        "github_repo_id": REPO_ID,
+        "candidate_status": "APPROVED",
+        "repository_name": "igniteHackathon404Found",
+        "full_name": "Heetshah21/igniteHackathon404Found",
+        "suggested_title": "Ignite Hackathon",
+        "suggested_description": "A verified project.",
+        "github_url": "https://github.com/Heetshah21/igniteHackathon404Found",
+        "languages": ["TypeScript"],
+        "technologies": ["React"],
+        "topics": [],
+    }
+    db = Db(projects=[project()])
+    db.candidates.records.append(candidate)
+
+    with patch("backend.routes.admin_processing.get_database", return_value=db), \
+         patch("backend.routes.admin_processing.get_settings", return_value={"admin_secret": "test-admin-secret"}), \
+         patch("backend.services.email_service.EmailService") as email_service, \
+         patch("backend.services.approval_token_service.ApprovalTokenService") as token_service:
+        client = TestClient(app)
+        first = client.post("/api/admin/republish-candidate/candidate-repair", headers={"X-Admin-Secret": "test-admin-secret"})
+        second = client.post("/api/admin/republish-candidate/candidate-repair", headers={"X-Admin-Secret": "test-admin-secret"})
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["candidate_status"] == "APPROVED"
+    assert first.json()["published"] is True
+    assert first.json()["publishing_status"] == "PUBLISHED"
+    assert first.json()["published_project_id"] == second.json()["published_project_id"]
+    assert len(db.published_projects.records) == 1
+    email_service.assert_not_called()
+    token_service.assert_not_called()
+
+
+def test_republish_requires_approved_candidate():
+    db = Db(projects=[project()])
+    db.candidates.records.append({"candidate_id": "candidate-review", "github_repo_id": REPO_ID, "candidate_status": "REVIEW"})
+    with patch("backend.routes.admin_processing.get_database", return_value=db), patch("backend.routes.admin_processing.get_settings", return_value={"admin_secret": "test-admin-secret"}):
+        response = TestClient(app).post("/api/admin/republish-candidate/candidate-review", headers={"X-Admin-Secret": "test-admin-secret"})
+    assert response.status_code == 409
+    assert db.published_projects.records == []
