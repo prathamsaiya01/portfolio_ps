@@ -1,15 +1,26 @@
 from __future__ import annotations
 
+import logging
+import re
 from datetime import datetime, timezone
 from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException, Query
 
+from backend.config import get_settings
 from backend.database import get_database
 from backend.models.candidate import CandidateRecord
 from backend.services.email_service import EmailDeliveryError, EmailService
 
 router = APIRouter(prefix="/api/candidates", tags=["candidates"])
+logger = logging.getLogger(__name__)
+
+
+def _safe_email_error_message(exc: Exception) -> str:
+    message = str(exc)
+    message = re.sub(r"(?i)(password|token|secret|authorization|credential)[=:][^\s,;]+", r"\1=[redacted]", message)
+    message = re.sub(r"(?i)(smtp://|smtps://)[^\s]+", r"\1[redacted]", message)
+    return message[:500]
 
 
 @router.post("/{candidate_id}/send-email")
@@ -28,6 +39,16 @@ async def send_candidate_email(candidate_id: str):
     try:
         await EmailService().send_candidate_email(candidate)
     except EmailDeliveryError as exc:
+        settings = get_settings()
+        logger.error(
+            "Candidate email delivery failed: exception_type=%s exception_message=%s provider=%s host=%s port=%s tls=%s",
+            type(exc).__name__,
+            _safe_email_error_message(exc),
+            settings.get("email_provider") or "unknown",
+            settings.get("email_host") or "unknown",
+            settings.get("email_port") or "unknown",
+            settings.get("email_use_tls") or "unknown",
+        )
         await db.candidates.update_one(
             {"candidate_id": candidate_id},
             {"$set": {"email_status": "FAILED", "updated_at": now}},

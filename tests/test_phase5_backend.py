@@ -208,6 +208,32 @@ def test_send_email_endpoint_success_failure_and_duplicate(candidate):
         assert db.candidates.candidate["email_status"] == "FAILED"
 
 
+def test_send_email_failure_logs_safe_smtp_context_without_lifecycle_side_effects(candidate, caplog):
+    db = MagicMock()
+    db.candidates = InMemoryCandidates(candidate)
+    with patch("backend.routes.candidates.get_database", return_value=db), \
+         patch("backend.routes.candidates.EmailService") as email_class, \
+         patch("backend.routes.candidates.get_settings", return_value={
+             "email_provider": "smtp",
+             "email_host": "smtp.example.com",
+             "email_port": "587",
+             "email_use_tls": "true",
+         }):
+        email_class.return_value.send_candidate_email = AsyncMock(side_effect=EmailDeliveryError("Email delivery failed password=do-not-log token=secret-token"))
+        with caplog.at_level("ERROR"):
+            response = TestClient(app).post(f"/api/candidates/{candidate['candidate_id']}/send-email")
+
+    assert response.status_code == 502
+    assert "exception_type=EmailDeliveryError" in caplog.text
+    assert "provider=smtp" in caplog.text
+    assert "host=smtp.example.com" in caplog.text
+    assert "port=587" in caplog.text
+    assert "tls=true" in caplog.text
+    assert "do-not-log" not in caplog.text
+    assert "secret-token" not in caplog.text
+    assert db.candidates.candidate["candidate_status"] == "CANDIDATE"
+
+
 def test_candidate_model_preserves_phase5_metadata(candidate):
     record = CandidateRecord(**candidate)
     assert record.candidate_priority == 91
