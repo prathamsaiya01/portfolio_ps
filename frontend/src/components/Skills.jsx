@@ -1,5 +1,4 @@
 import React from 'react';
-import { skillGroups } from '../data/skillGroups';
 
 const Skills = () => {
   return (
@@ -18,22 +17,22 @@ const Skills = () => {
 
         {/* Skills Grid */}
         <div className="grid md:grid-cols-2 gap-12">
-          {skillGroups.map((category, index) => (
+          {skills.map((category, index) => (
             <div key={index} className="bg-[#1a1c1b] p-8 rounded-2xl border border-[#3f4816]/50">
               <h3 className="text-[#d9fb06] text-2xl font-bold mb-6 uppercase tracking-wide">
                 {category.category}
               </h3>
               <div className="space-y-6">
-                {category.items.map(([name, level], skillIndex) => (
+                {category.items.map((skill, skillIndex) => (
                   <div key={skillIndex}>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-[#dfddd6] font-medium">{name}</span>
-                      <span className="text-[#888680] text-sm">{level === null ? 'Listed skill' : level >= 80 ? 'Advanced' : level >= 65 ? 'Proficient' : 'Working Knowledge'}</span>
+                      <span className="text-[#dfddd6] font-medium">{skill.name}</span>
+                      <span className="text-[#888680] text-sm">{skill.level === null ? 'Listed skill' : skill.level >= 80 ? 'Advanced' : skill.level >= 65 ? 'Proficient' : 'Working Knowledge'}</span>
                     </div>
                     <div className="w-full h-2 bg-[#302f2c] rounded-full overflow-hidden">
                       <div
                         className="h-full bg-[#d9fb06] rounded-full transition-all duration-1000 ease-out"
-                        style={{ width: level === null ? '0%' : `${level}%` }}
+                        style={{ width: skill.level === null ? '0%' : `${skill.level}%` }}
                       ></div>
                     </div>
                   </div>

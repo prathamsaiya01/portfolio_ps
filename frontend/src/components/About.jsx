@@ -1,6 +1,6 @@
 import React from 'react';
 import { MapPin, Mail } from 'lucide-react';
-import { personalInfo, experience, education } from '../data/mock';
+import { personalInfo, experience, education, academicHighlights } from '../data/mock';
 
 const About = () => {
   return (
@@ -43,6 +43,15 @@ const About = () => {
                   {personalInfo.email}
                 </a>
               </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 mt-8">
+              {academicHighlights.map((highlight) => (
+                <div key={highlight.label} className="bg-[#302f2c] border border-[#3f4816]/50 rounded-xl p-4">
+                  <p className="text-[#d9fb06] text-xl sm:text-2xl font-black">{highlight.value}</p>
+                  <p className="text-[#888680] text-xs mt-1 leading-tight">{highlight.label}</p>
+                </div>
+              ))}
             </div>
           </div>
 

@@ -1,5 +1,5 @@
 import { projects as mockProjects } from '../data/mock';
-import { manualProjects } from '../data/portfolioUpdates';
+import { manualProjects } from '../data/mock';
 import { getPublishedProjects } from './api';
 
 const fallbackImage = mockProjects[0]?.image || '';
