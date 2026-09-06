@@ -5,6 +5,8 @@ import AdminApp, { ApprovalResult } from './components/AdminApp';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import About from './components/About';
+import AcademicHighlights from './components/AcademicHighlights';
+import Hackathons from './components/Hackathons';
 import Projects from './components/Projects';
 import Skills from './components/Skills';
 import Resume from './components/Resume';
@@ -19,6 +21,8 @@ function PublicPortfolio() {
       <main>
         <Hero />
         <About />
+        <AcademicHighlights />
+        <Hackathons />
         <Projects />
         <Skills />
         <Resume />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Github, Linkedin, Twitter } from 'lucide-react';
+import { Github, Linkedin } from 'lucide-react';
 import { Button } from './ui/button';
 import { personalInfo } from '../data/mock';
 
@@ -101,15 +101,6 @@ const Hero = () => {
               aria-label="LinkedIn"
             >
               <Linkedin size={24} />
-            </a>
-            <a
-              href={personalInfo.socials.twitter}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#888680] hover:text-[#d9fb06] transition-colors p-2"
-              aria-label="Twitter"
-            >
-              <Twitter size={24} />
             </a>
           </div>
         </div>

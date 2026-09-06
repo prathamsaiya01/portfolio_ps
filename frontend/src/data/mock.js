@@ -3,16 +3,15 @@
 export const personalInfo = {
   name: 'Pratham Saiya',
   tagline:
-    'Diploma Computer Engineering student, Technical Head – Spectrum 4.0, and aspiring software developer focused on event tech, web apps, and problem solving.',
+    'Third-year Diploma Computer Engineering student, developer, hackathon participant, and technical event leader building practical AI, web, and product experiences.',
   bio:
-    "I’m a 2nd-year Diploma student in Computer Engineering, consistently scoring distinction in my semesters. As the Technical Head of Spectrum 4.0, I led the development and execution of innovative tech events and coding games. I love building real-world projects in web development, UI/UX, and event tech, and I’m looking for an internship where I can learn, contribute, and grow.",
+    "I’m a third-year Diploma student in Computer Engineering, a developer and hackathon participant with experience leading technical events and collaborative projects. I’m interested in AI, software, product development, and practical web experiences, and I’m currently building NOVA, an AI Smart Mirror with Virtual Try-On Clothes.",
   location: 'Goregaon (West), Mumbai – 400104',
   email: 'prathamsaiya01@gmail.com',
   // 👉 Update these with your real profiles
   socials: {
     github: 'https://github.com/prathamsaiya01',
-    linkedin: 'https://www.linkedin.com/in/your-profile',
-    twitter: 'https://x.com/your-handle',
+    linkedin: 'https://www.linkedin.com/in/pratham-saiya-5512b7330?utm_source=share_via&utm_content=profile&utm_medium=member_android',
   },
   // put your PDF in /public and update the name if needed
   resumeUrl: '/PrathamS-Resume-Internship.pdf',
@@ -37,22 +36,27 @@ export const experience = [
   },
   {
     id: 3,
-    title: 'Hackathon Participant – LoanWise (SIH)',
-    company: 'Smart India Hackathon',
-    period: 'Sep 2025',
-    description:
-      'Worked on Loan Utilisation Tracker – LoanWise, a system to monitor and optimise loan usage, focusing on requirements, logic, and team collaboration.',
+    title: 'Newsletter Editorial Head',
+    company: 'College',
+    period: '2024 – 2026',
+    description: 'Led editorial and content coordination for college newsletter work, supporting clear communication and consistent presentation.',
   },
   {
     id: 4,
-    title: 'Hackathon Participant – RakhtSetu',
-    company: 'RakhtSetu Hackathon',
-    period: 'Aug 2025',
-    description:
-      'Built RakhtSetu, a web platform connecting blood donors and recipients, contributing to UI design and backend database logic.',
+    title: 'Graphic Design Intern',
+    company: 'CNK',
+    period: 'Not specified',
+    description: 'Graphic design internship experience.',
   },
   {
     id: 5,
+    title: 'React.js Developer Intern',
+    company: 'TEN',
+    period: 'Not specified',
+    description: 'React.js developer internship experience.',
+  },
+  {
+    id: 6,
     title: 'Volunteer',
     company: 'Spectrum 3.0',
     period: 'Aug 2024 – Sept 2024',
@@ -68,7 +72,7 @@ export const education = [
     school: 'SVKM’s Shri Bhagubhai Mafatlal Polytechnic & College of Engineering',
     period: '2024 – Present',
     description:
-      '2nd-year Diploma student with distinction in Semester I (91.77%) and Semester II (91.33%), actively involved in technical events and leadership roles.',
+      '3rd-year Diploma student with distinction in Semester I (91.77%) and Semester II (91.33%), actively involved in technical events and leadership roles.',
   },
   {
     id: 2,

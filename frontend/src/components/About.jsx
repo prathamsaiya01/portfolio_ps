@@ -50,7 +50,7 @@ const About = () => {
           <div>
             {/* Experience */}
             <div className="mb-12">
-              <h3 className="text-[#d9fb06] text-2xl font-bold mb-6 uppercase tracking-wide">Experience</h3>
+              <h3 className="text-[#d9fb06] text-2xl font-bold mb-6 uppercase tracking-wide">Experience & Leadership</h3>
               <div className="space-y-6">
                 {experience.map((exp) => (
                   <div key={exp.id} className="border-l-2 border-[#3f4816] pl-6 pb-6">

@@ -1,5 +1,5 @@
 import React from 'react';
-import { skills } from '../data/mock';
+import { skillGroups } from '../data/skillGroups';
 
 const Skills = () => {
   return (
@@ -18,22 +18,22 @@ const Skills = () => {
 
         {/* Skills Grid */}
         <div className="grid md:grid-cols-2 gap-12">
-          {skills.map((category, index) => (
+          {skillGroups.map((category, index) => (
             <div key={index} className="bg-[#1a1c1b] p-8 rounded-2xl border border-[#3f4816]/50">
               <h3 className="text-[#d9fb06] text-2xl font-bold mb-6 uppercase tracking-wide">
                 {category.category}
               </h3>
               <div className="space-y-6">
-                {category.items.map((skill, skillIndex) => (
+                {category.items.map(([name, level], skillIndex) => (
                   <div key={skillIndex}>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-[#dfddd6] font-medium">{skill.name}</span>
-                      <span className="text-[#888680] text-sm">{skill.level}%</span>
+                      <span className="text-[#dfddd6] font-medium">{name}</span>
+                      <span className="text-[#888680] text-sm">{level === null ? 'Listed skill' : level >= 80 ? 'Advanced' : level >= 65 ? 'Proficient' : 'Working Knowledge'}</span>
                     </div>
                     <div className="w-full h-2 bg-[#302f2c] rounded-full overflow-hidden">
                       <div
                         className="h-full bg-[#d9fb06] rounded-full transition-all duration-1000 ease-out"
-                        style={{ width: `${skill.level}%` }}
+                        style={{ width: level === null ? '0%' : `${level}%` }}
                       ></div>
                     </div>
                   </div>

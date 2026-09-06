@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Send, Mail, MapPin, Linkedin, Github, Twitter } from 'lucide-react';
+import { Send, Mail, MapPin, Linkedin, Github } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
@@ -107,15 +107,6 @@ const Contact = () => {
                   aria-label="LinkedIn"
                 >
                   <Linkedin size={20} />
-                </a>
-                <a
-                  href={personalInfo.socials.twitter}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-12 h-12 bg-[#302f2c] rounded-full flex items-center justify-center text-[#888680] hover:text-[#d9fb06] hover:bg-[#3f4816] transition-all"
-                  aria-label="Twitter"
-                >
-                  <Twitter size={20} />
                 </a>
               </div>
             </div>

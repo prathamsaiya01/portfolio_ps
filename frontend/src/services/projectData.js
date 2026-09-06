@@ -1,4 +1,5 @@
 import { projects as mockProjects } from '../data/mock';
+import { manualProjects } from '../data/portfolioUpdates';
 import { getPublishedProjects } from './api';
 
 const fallbackImage = mockProjects[0]?.image || '';
@@ -17,22 +18,24 @@ export const normalizePublishedProject = (project, index = 0) => {
     image: project.image_url || fallbackImage,
     demo: project.live_url || '#',
     repo: project.github_url || '#',
+    status: project.status || 'PUBLISHED',
+    featured: Boolean(project.featured),
   };
 };
 
 export const loadPortfolioProjects = async () => {
   try {
     const published = await getPublishedProjects();
-    if (!Array.isArray(published)) return mockProjects;
+    if (!Array.isArray(published)) return [...manualProjects, ...mockProjects];
     const normalized = published.map(normalizePublishedProject).filter(Boolean);
-    if (!normalized.length) return mockProjects;
+    if (!normalized.length) return [...manualProjects, ...mockProjects];
 
     // Legacy projects remain visible until an explicit, safe migration supplies their database identities.
     const publishedTitles = new Set(normalized.map((project) => project.title.toLowerCase()));
     const legacyProjects = mockProjects.filter((project) => !publishedTitles.has(project.title.toLowerCase()));
-    return [...legacyProjects, ...normalized];
+    return [...manualProjects, ...legacyProjects, ...normalized];
   } catch {
-    return mockProjects;
+    return [...manualProjects, ...mockProjects];
   }
 };
 

@@ -95,6 +95,11 @@ const Projects = () => {
                 <h3 className="text-[#dfddd6] text-xl font-bold mb-2 group-hover:text-[#d9fb06] transition-colors">
                   {project.title}
                 </h3>
+                {project.status && project.status !== 'PUBLISHED' && (
+                  <span className="inline-flex px-2 py-1 mb-3 rounded-full bg-[#1a1c1b] text-[#d9fb06] text-[10px] font-bold tracking-wide">
+                    {project.status}
+                  </span>
+                )}
                 <p className="text-[#888680] text-sm mb-4 line-clamp-2">
                   {project.description}
                 </p>
@@ -118,7 +123,7 @@ const Projects = () => {
 
                 {/* Links */}
                 <div className="flex gap-3">
-                  <a
+                  {project.demo && (project.demo !== '#' || !project.status || project.status === 'PUBLISHED') && <a
                     href={project.demo}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -127,8 +132,8 @@ const Projects = () => {
                   >
                     <ExternalLink size={16} />
                     Demo
-                  </a>
-                  <a
+                  </a>}
+                  {project.repo && (project.repo !== '#' || !project.status || project.status === 'PUBLISHED') && <a
                     href={project.repo}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -137,7 +142,7 @@ const Projects = () => {
                   >
                     <Github size={16} />
                     Code
-                  </a>
+                  </a>}
                 </div>
               </div>
             </div>
