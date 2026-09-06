@@ -99,7 +99,7 @@ def test_workflow_has_weekly_schedule_dispatch_secret_and_render_endpoint():
     workflow = Path(".github/workflows/weekly-github-automation.yml").read_text()
     assert 'cron: "0 3 * * 0"' in workflow
     assert "workflow_dispatch:" in workflow
-    assert "secrets.GITHUB_AUTOMATION_TRIGGER_SECRET" in workflow
+    assert "secrets.PORTFOLIO_AUTOMATION_TRIGGER_SECRET" in workflow
     assert "https://portfolio-ps-43gi.onrender.com/api/admin/weekly-github-discovery" in workflow
     assert "MONGO_URL" not in workflow
     assert "RESEND_API_KEY" not in workflow
