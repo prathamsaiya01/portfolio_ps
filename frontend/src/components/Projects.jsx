@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ExternalLink, Github, X } from 'lucide-react';
 import { Button } from './ui/button';
-import { loadPortfolioProjects, mockProjects } from '../services/projectData';
+import { loadPortfolioProjects, localProjects } from '../services/projectData';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import {
 } from './ui/dialog';
 
 const Projects = () => {
-  const [projects, setProjects] = useState(mockProjects);
+  const [projects, setProjects] = useState(localProjects);
   const [filter, setFilter] = useState('all');
   const [selectedProject, setSelectedProject] = useState(null);
 
