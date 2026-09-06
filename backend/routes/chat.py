@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
+from typing import List
+
 from pydantic import BaseModel, Field
 
 from backend.services.ai_provider import AiProviderError, get_chat_provider
@@ -13,6 +15,7 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=1000)
+    history: List[str] = Field(default_factory=list, max_length=12)
 
 
 class ChatResponse(BaseModel):
@@ -26,7 +29,10 @@ class TextToSpeechRequest(BaseModel):
 @router.post("", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     try:
-        reply = await get_chat_provider().chat(request.message.strip())
+        if request.history:
+            reply = await get_chat_provider().chat(request.message.strip(), request.history)
+        else:
+            reply = await get_chat_provider().chat(request.message.strip())
     except AiProviderError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from None
     return ChatResponse(reply=reply)

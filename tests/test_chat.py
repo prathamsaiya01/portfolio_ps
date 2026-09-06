@@ -38,12 +38,12 @@ def test_cloud_provider_sends_api_key_only_in_server_side_authorization_header()
 
     import asyncio
     with patch("backend.services.ai_provider.httpx.AsyncClient.post", new_callable=AsyncMock, return_value=response) as post:
-        result = asyncio.run(provider.chat("Hello"))
+        result = asyncio.run(provider.chat("What is Pratham's name?"))
 
     assert result == "Hello from the hosted provider."
     assert post.call_args.args == ("https://cloud.example/v1/chat/completions",)
     assert post.call_args.kwargs["headers"] == {"Authorization": "Bearer cloud-secret-key"}
-    assert post.call_args.kwargs["json"]["messages"][-1] == {"role": "user", "content": "Hello"}
+    assert "Visitor question: What is Pratham's name?" in post.call_args.kwargs["json"]["messages"][-1]["content"]
 
 
 def test_provider_factory_selects_cloud_without_constructing_ollama():

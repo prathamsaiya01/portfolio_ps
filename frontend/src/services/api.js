@@ -28,7 +28,7 @@ export const evaluateProject = (repoId) => request(api.post(`/projects/${repoId}
 export const getPublishedProjects = () => request(api.get('/portfolio/projects'));
 export const getPortfolioRanking = () => request(api.get('/portfolio/ranking'));
 export const getPortfolioHealth = () => request(api.get('/portfolio/health'));
-export const sendChatMessage = (message) => request(api.post('/chat', { message }, { timeout: CHAT_TIMEOUT_MS }));
+export const sendChatMessage = (message, history = []) => request(api.post('/chat', { message, ...(history.length ? { history } : {}) }, { timeout: CHAT_TIMEOUT_MS }));
 export const getChatSpeech = async (text) => {
   try {
     const response = await api.post('/chat/tts', { text }, {

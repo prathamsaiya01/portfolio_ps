@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Protocol
+from typing import Any, Dict, Protocol, Sequence
 
 import httpx
 
 from backend.config import get_settings
 from backend.services.ollama_service import OllamaService, OllamaServiceError
+from backend.services.pratham_knowledge import FALLBACK_RESPONSE, build_profile_prompt, get_trusted_context
 
 
 class AiProviderError(RuntimeError):
@@ -13,7 +14,7 @@ class AiProviderError(RuntimeError):
 
 
 class ChatProvider(Protocol):
-    async def chat(self, message: str) -> str:
+    async def chat(self, message: str, history: Sequence[str] | None = None) -> str:
         """Return a portfolio-assistant response for a visitor message."""
 
 
@@ -21,13 +22,11 @@ class OllamaChatProvider:
     def __init__(self, service: OllamaService | None = None):
         self.service = service or OllamaService()
 
-    async def chat(self, message: str) -> str:
-        prompt = (
-            "You are Pratham AI, a concise assistant for Pratham's portfolio website. "
-            "Answer only about Pratham's projects, skills, and contact information. "
-            "Do not invent facts. If the portfolio does not establish an answer, say so.\n\n"
-            f"Visitor: {message}\nPratham AI:"
-        )
+    async def chat(self, message: str, history: Sequence[str] | None = None) -> str:
+        context = get_trusted_context(message, list(history or []))
+        if context is None:
+            return FALLBACK_RESPONSE
+        prompt = build_profile_prompt(message, context)
         try:
             return await self.service.generate_chat_response(prompt)
         except OllamaServiceError as exc:
@@ -40,21 +39,24 @@ class CloudChatProvider:
     def __init__(self, settings: Dict[str, Any] | None = None):
         self.settings = settings or get_settings()
 
-    async def chat(self, message: str) -> str:
+    async def chat(self, message: str, history: Sequence[str] | None = None) -> str:
         base_url = self.settings.get("cloud_ai_base_url")
         api_key = self.settings.get("cloud_ai_api_key")
         model = self.settings.get("cloud_ai_model")
         if not base_url or not api_key or not model:
             raise AiProviderError("The cloud AI provider is not configured.")
 
+        context = get_trusted_context(message, list(history or []))
+        if context is None:
+            return FALLBACK_RESPONSE
         payload = {
             "model": model,
             "messages": [
                 {
                     "role": "system",
-                    "content": "You are Pratham AI, a concise assistant for Pratham's portfolio. Do not invent facts.",
+                    "content": "You are Pratham AI. Use only the trusted profile context in the user message. Never invent personal facts.",
                 },
-                {"role": "user", "content": message},
+                {"role": "user", "content": build_profile_prompt(message, context)},
             ],
             "temperature": 0.4,
         }

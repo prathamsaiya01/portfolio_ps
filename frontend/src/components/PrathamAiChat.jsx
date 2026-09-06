@@ -57,7 +57,8 @@ const PrathamAiChat = () => {
     setInput('');
     setIsSending(true);
     try {
-      const response = await sendChatMessage(question);
+      const history = messages.slice(-12).map((message) => message.text);
+      const response = await sendChatMessage(question, history);
       setMessages((current) => [...current, { id: `assistant-${Date.now()}`, role: 'assistant', text: response.reply }]);
     } catch (error) {
       setMessages((current) => [...current, {

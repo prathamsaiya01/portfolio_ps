@@ -1,0 +1,55 @@
+{
+  "identity": {
+    "name": "Pratham Saiya",
+    "date_of_birth": "5 August 2008",
+    "education_level": "Third-year Diploma student",
+    "field": "Computer Engineering",
+    "interests": ["software development", "Artificial Intelligence", "backend development", "practical technology solutions", "product development", "UI/UX", "problem solving", "innovation", "building useful applications", "experimenting with technology"],
+    "philosophy": "Build, experiment, and continuously improve."
+  },
+  "contact": {"email": "prathamsaiya01@gmail.com", "github_username": "prathamsaiya01"},
+  "education": {
+    "programme": "Third-year Diploma in Computer Engineering",
+    "academic_performance": {"semester_1": "91.77%", "semester_2": "91.33%", "semester_3": "91.76%", "semester_4": "94.11%", "award_winning_subjects": "96%"}
+  },
+  "technical_skills": {
+    "programming_languages": ["C", "C++", "Java", "JavaScript", "TypeScript", "Python"],
+    "frontend": ["React.js", "HTML/CSS", "JavaScript", "TypeScript", "UI/UX development"],
+    "backend": ["Node.js", "Python", "FastAPI", "Backend API development"],
+    "databases": ["MySQL", "MongoDB", "DBMS"],
+    "mobile": ["Flutter"],
+    "services": ["Supabase", "Firebase"],
+    "ai": ["Artificial Intelligence", "Basic Machine Learning", "AI application development", "LLM/API integration", "Ollama", "Chatterbox"],
+    "tools": ["Git", "GitHub", "VS Code"]
+  },
+  "soft_skills": ["Leadership", "Communication", "Teamwork", "Problem solving", "Creativity", "UI/UX thinking", "Event management", "Collaboration", "Practical thinking", "Product thinking", "Innovation"],
+  "projects": {
+    "CareerMitra": "An education and career-oriented project intended to help students make career and educational decisions through an interactive, decision-based roadmap.",
+    "FitFreak": "A fitness-related portfolio project. Available information does not specify further features or technology.",
+    "Notely": "A collaborative notes and reminders application using Flutter, Supabase, supabase_flutter, PostgreSQL through Supabase, real-time functionality, authentication, and a guest-first authentication approach.",
+    "AITeacherBot": "An AI and education-related project focused on AI-powered teaching and learning. Available information does not specify its models, datasets, or architecture.",
+    "NOVA": "Pratham's final-year project: an AI Smart Mirror with Virtual Try-On Clothes. It is under development and is designed around a Raspberry Pi, display, two-way mirror, and camera to explore virtual clothing try-on."
+  },
+  "internships": [
+    {"company": "CNK", "role": "Graphic Design Intern", "duration": "60 days"},
+    {"company": "TEN Network", "role": "React.js Developer Intern", "duration": "30 days"}
+  ],
+  "leadership": [
+    {"role": "Technical Head", "organization": "Spectrum 4.0"},
+    {"role": "Student Class Representative", "organization": "SVKM's SBMP"},
+    {"role": "Newsletter Editorial Head"},
+    {"role": "Design and Tech Team", "organization": "Spectrum 3.0"},
+    {"role": "Volunteer", "organization": "Spectrum 3.0"}
+  ],
+  "hackathons": [
+    {"name": "Smart India Hackathon (SIH)", "project": "LoanWise"},
+    {"name": "RakhtSetu Hackathon"},
+    {"name": "OOSC 4.0", "organization": "IIIT Allahabad"},
+    {"name": "HackDevengers 1.0", "organization": "Unstop"},
+    {"name": "Ignite 8.0"}
+  ],
+  "hobbies": ["Playing cricket", "Making new websites", "Making new applications", "Innovation", "Experimenting with technology", "Building things"],
+  "portfolio": "Pratham's portfolio includes a floating Pratham AI assistant with text conversation and optional voice output.",
+  "automation": "Pratham has created automation for the portfolio's project workflow. The available information does not specify further implementation details.",
+  "ai_assistant": "Pratham AI is a portfolio assistant for questions about Pratham. Its local voice output uses Chatterbox with Pratham's voice as a reference; private implementation details must not be disclosed."
+}
