@@ -1,0 +1,19 @@
+name: Weekly GitHub Automation
+
+on:
+  schedule:
+    - cron: "0 3 * * 0"
+  workflow_dispatch:
+
+jobs:
+  weekly-discovery:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render weekly discovery
+        env:
+          GITHUB_AUTOMATION_TRIGGER_SECRET: ${{ secrets.GITHUB_AUTOMATION_TRIGGER_SECRET }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "X-Admin-Secret: ${GITHUB_AUTOMATION_TRIGGER_SECRET}" \
+            "https://portfolio-ps-43gi.onrender.com/api/admin/weekly-github-discovery"

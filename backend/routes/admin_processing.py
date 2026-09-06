@@ -10,6 +10,7 @@ from backend.database import get_database
 from backend.services.github_service import GitHubService, GitHubServiceError
 from backend.services.github_webhook_service import GitHubWebhookService, WebhookPayloadError
 from backend.services.portfolio_publishing import PortfolioPublishingError, PortfolioPublishingService
+from backend.services.github_weekly_automation import GitHubWeeklyAutomationService, automation_enabled
 
 router = APIRouter(prefix="/api/admin", tags=["admin-processing"])
 
@@ -17,6 +18,13 @@ router = APIRouter(prefix="/api/admin", tags=["admin-processing"])
 def _require_admin_secret(provided_secret: str | None) -> None:
     settings = get_settings()
     configured_secret = settings.get("admin_secret") or settings.get("approval_secret")
+    if not configured_secret or not provided_secret or not hmac.compare_digest(provided_secret, configured_secret):
+        raise HTTPException(status_code=401, detail="Invalid admin credentials")
+
+
+def _require_weekly_trigger_secret(provided_secret: str | None) -> None:
+    settings = get_settings()
+    configured_secret = settings.get("github_automation_trigger_secret")
     if not configured_secret or not provided_secret or not hmac.compare_digest(provided_secret, configured_secret):
         raise HTTPException(status_code=401, detail="Invalid admin credentials")
 
@@ -104,3 +112,13 @@ async def republish_candidate(
         "published_project_id": published.get("id"),
         "publishing_status": published.get("status"),
     }
+
+
+@router.post("/weekly-github-discovery")
+async def trigger_weekly_github_discovery(
+    x_admin_secret: str | None = Header(default=None),
+) -> Dict[str, Any]:
+    _require_weekly_trigger_secret(x_admin_secret)
+    if not automation_enabled():
+        return {"status": "disabled"}
+    return await GitHubWeeklyAutomationService().run_once()

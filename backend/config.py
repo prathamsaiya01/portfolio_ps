@@ -37,6 +37,7 @@ def get_settings() -> dict:
         "ollama_base_url": get_env("OLLAMA_BASE_URL", "http://localhost:11434"),
         "ollama_model": get_env("OLLAMA_MODEL"),
         "admin_secret": get_env("ADMIN_SECRET"),
+        "github_automation_trigger_secret": get_env("GITHUB_AUTOMATION_TRIGGER_SECRET"),
         "approval_secret": get_env("APPROVAL_SECRET") or get_env("ADMIN_SECRET"),
         "approval_token_ttl_hours": get_env("APPROVAL_TOKEN_TTL_HOURS", "48"),
         "frontend_base_url": get_env("FRONTEND_BASE_URL", "http://localhost:3000"),
