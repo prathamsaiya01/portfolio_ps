@@ -10,6 +10,7 @@ import Skills from './components/Skills';
 import Resume from './components/Resume';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
+import PrathamAiChat from './components/PrathamAiChat';
 import { Toaster } from './components/ui/toaster';
 
 function PublicPortfolio() {
@@ -25,6 +26,7 @@ function PublicPortfolio() {
         <Contact />
       </main>
       <Footer />
+      <PrathamAiChat />
       <Toaster />
     </div>
   );

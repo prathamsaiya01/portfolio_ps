@@ -75,6 +75,33 @@ class OllamaService:
 
         return self._normalize_analysis(parsed)
 
+    async def generate_chat_response(self, message: str) -> str:
+        if not self.model:
+            raise OllamaServiceError("Ollama model is not configured.")
+
+        payload = {
+            "model": self.model,
+            "prompt": message,
+            "stream": False,
+            "options": {"temperature": 0.4},
+        }
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(f"{self.base_url}/api/generate", json=payload)
+                response.raise_for_status()
+                body = response.json()
+        except httpx.TimeoutException as exc:
+            raise OllamaServiceError("Ollama request timed out.") from exc
+        except httpx.HTTPError as exc:
+            raise OllamaServiceError("Ollama service is unavailable.") from exc
+        except ValueError as exc:
+            raise OllamaServiceError("Malformed Ollama response received.") from exc
+
+        content = (body or {}).get("response")
+        if not isinstance(content, str) or not content.strip():
+            raise OllamaServiceError("Ollama returned an empty or malformed response.")
+        return content.strip()
+
     def _build_prompt(self, project: Dict[str, Any], existing_projects: List[Dict[str, Any]]) -> str:
         evidence = project.get("readme") or ""
         summary_context = {

@@ -51,6 +51,10 @@ __pycache__/
 *pyc*
 venv/
 .venv/
+voice-env/
+voice-nano-env/
+voice-clone/
+*.wav
 
 # Development tools
 chainlit.md

@@ -21,6 +21,7 @@ from backend.routes.admin_processing import router as admin_processing_router
 from backend.routes.github import router as github_router
 from backend.routes.github_webhook import router as github_webhook_router
 from backend.routes.health import router as health_router
+from backend.routes.chat import router as chat_router
 from backend.routes.projects import router as projects_router
 from backend.routes.portfolio import router as portfolio_router
 
@@ -93,6 +94,7 @@ async def download_portfolio():
 
 app.include_router(health_router)
 app.include_router(api_router)
+app.include_router(chat_router)
 app.include_router(github_router)
 app.include_router(github_webhook_router)
 app.include_router(projects_router)
